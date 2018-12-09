@@ -61,7 +61,6 @@ public class WiFiData {
         }
     }
     private static String lastNotified = "";
-    private static double currentDistance = 1000;
 
     public WiFiData(@NonNull List<WiFiDetail> wiFiDetails, @NonNull WiFiConnection wiFiConnection, @NonNull List<String> wiFiConfigurations) {
         this.wiFiDetails = wiFiDetails;
@@ -87,6 +86,7 @@ public class WiFiData {
             results = sortAndGroup(results, sortBy, groupBy);
         }
         Collections.sort(results, sortBy.comparator());
+        notifyLocation(results);
         return results;
     }
 
@@ -111,6 +111,40 @@ public class WiFiData {
         }
         Collections.sort(results, sortBy.comparator());
         return results;
+    }
+
+    private void notifyLocation(List<WiFiDetail> wifiDetails) {
+        if(wifiDetails.size() < 3) {
+            return;
+        }
+        try {
+            String lookupKey = (wifiDetails.get(0).getBSSID() + " " + wifiDetails.get(1).getBSSID() + " " + wifiDetails.get(2).getBSSID()).toUpperCase();
+            String location = wiFiLocations.getString(lookupKey);
+            if(location == null) {
+                location = wiFiLocations.getString((wifiDetails.get(1).getBSSID() + " " + wifiDetails.get(0).getBSSID() + " " + wifiDetails.get(2).getBSSID()).toUpperCase());
+            }
+            if(location == null) {
+                location = wiFiLocations.getString((wifiDetails.get(0).getBSSID() + " " + wifiDetails.get(1).getBSSID()).toUpperCase());
+            }
+            if(location == null) {
+                location = wiFiLocations.getString((wifiDetails.get(1).getBSSID() + " " + wifiDetails.get(0).getBSSID()).toUpperCase());
+            }
+            if(location == null) {
+                location = wiFiLocations.getString(wifiDetails.get(0).getBSSID().toUpperCase());
+            }
+            if(location == null) {
+                location = wiFiLocations.getString(wifiDetails.get(1).getBSSID().toUpperCase());
+            }
+            if(location != null) {
+                if(!lastNotified.equals(location)) {
+                    Toast.makeText(MainContext.INSTANCE.getContext(), "You are in " + location, Toast.LENGTH_LONG).show();
+                    lastNotified = location;
+                }
+            } else {
+                //Toast.makeText(MainContext.INSTANCE.getContext(), "Nothing found " + lookupKey, Toast.LENGTH_SHORT).show();
+            }
+        } catch(Exception e) {
+        }
     }
 
     @NonNull
@@ -139,22 +173,6 @@ public class WiFiData {
     private WiFiDetail copyWiFiDetail(WiFiDetail wiFiDetail) {
         VendorService vendorService = MainContext.INSTANCE.getVendorService();
         String vendorName = vendorService.findVendorName(wiFiDetail.getBSSID());
-        try {
-            String location = wiFiLocations.getString(wiFiDetail.getBSSID().toUpperCase());
-            if(location != null) {
-                double distance = WiFiUtils.calculateDistance(wiFiDetail.getWiFiSignal().getPrimaryFrequency(), wiFiDetail.getWiFiSignal().getLevel());
-                if(!lastNotified.equals(location) && distance <= currentDistance) {
-                    Toast.makeText(MainContext.INSTANCE.getContext(), "You are in " + location, Toast.LENGTH_LONG).show();
-                    lastNotified = location;
-                    currentDistance = distance;
-                } else {
-                    // getting closer or further away
-                    currentDistance = distance;
-                }
-            }
-        } catch(Exception e) {
-
-        }
         WiFiAdditional wiFiAdditional = new WiFiAdditional(vendorName, wiFiConnection);
         return new WiFiDetail(wiFiDetail, wiFiAdditional);
     }
