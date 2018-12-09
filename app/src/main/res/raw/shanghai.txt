@@ -1,0 +1,10 @@
+{
+    "E0:3F:49:93:5C:DC": "B3#101 [AgoraSpace]",
+    "38:2C:4A:95:E8:34": "B8 lobby [Agora Space]",
+    "9C:3D:CF:74:8A:5B": "B8 lobby meeting room [Overhand 5G]",
+    "9C:3D:CF:74:8A:5C": "B8 lobby meeting room [Overhand 5G]",
+    "00:1C:58:41:C2:E0": "B8 server room [KITAPP01]",
+    "A0:48:1C:5C:E6:30": "B8 classroom [HP 4500]",
+    "08:62:66:BE:4C:F8": "B8 conference room [Agora Space]",
+    "08:62:66:be:4c:fc": "B8 Classroom Door A",
+}

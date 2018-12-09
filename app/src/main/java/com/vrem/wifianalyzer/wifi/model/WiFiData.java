@@ -19,9 +19,14 @@
 package com.vrem.wifianalyzer.wifi.model;
 
 import android.support.annotation.NonNull;
+import android.widget.Toast;
 
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
+import com.vrem.wifianalyzer.MainContext;
+import com.vrem.util.FileUtils;
+import com.vrem.wifianalyzer.R;
+import android.content.res.Resources;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
@@ -33,13 +38,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+import org.json.JSONObject;
 
 public class WiFiData {
     public static final WiFiData EMPTY = new WiFiData(Collections.emptyList(), WiFiConnection.EMPTY, Collections.emptyList());
 
     private final List<WiFiDetail> wiFiDetails;
-    private final WiFiConnection wiFiConnection;
     private final List<String> wiFiConfigurations;
+    private final WiFiConnection wiFiConnection;
+    private static JSONObject wiFiLocations = new JSONObject();
+    static
+    {
+        try {
+            String content = FileUtils.readFile(MainContext.INSTANCE.getResources(), R.raw.shanghai);
+            wiFiLocations = new JSONObject(content);
+            Toast.makeText(MainContext.INSTANCE.getContext(), "Loaded locations with " + wiFiLocations.length() + " MAC -> location mappings", Toast.LENGTH_LONG).show();
+        } catch(Exception e) {
+            Toast.makeText(MainContext.INSTANCE.getContext(), "Failed to load locations", Toast.LENGTH_LONG).show();
+        }
+    }
+    private static String lastNotified = "";
+    private static double currentDistance = 1000;
 
     public WiFiData(@NonNull List<WiFiDetail> wiFiDetails, @NonNull WiFiConnection wiFiConnection, @NonNull List<String> wiFiConfigurations) {
         this.wiFiDetails = wiFiDetails;
@@ -117,6 +139,22 @@ public class WiFiData {
     private WiFiDetail copyWiFiDetail(WiFiDetail wiFiDetail) {
         VendorService vendorService = MainContext.INSTANCE.getVendorService();
         String vendorName = vendorService.findVendorName(wiFiDetail.getBSSID());
+        try {
+            String location = wiFiLocations.getString(wiFiDetail.getBSSID().toUpperCase());
+            if(location != null) {
+                double distance = WiFiUtils.calculateDistance(wiFiDetail.getWiFiSignal().getPrimaryFrequency(), wiFiDetail.getWiFiSignal().getLevel());
+                if(!lastNotified.equals(location) && distance <= currentDistance) {
+                    Toast.makeText(MainContext.INSTANCE.getContext(), "You are in " + location, Toast.LENGTH_LONG).show();
+                    lastNotified = location;
+                    currentDistance = distance;
+                } else {
+                    // getting closer or further away
+                    currentDistance = distance;
+                }
+            }
+        } catch(Exception e) {
+
+        }
         WiFiAdditional wiFiAdditional = new WiFiAdditional(vendorName, wiFiConnection);
         return new WiFiDetail(wiFiDetail, wiFiAdditional);
     }
