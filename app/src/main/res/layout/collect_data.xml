@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <EditText
+        android:id="@+id/collectDataEt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Type in your current location"
+        android:textColor="#fff"
+        android:textAlignment="center"
+        />
+    <Button
+        android:id="@+id/saveCollectedData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/design_default_color_primary"
+        android:textColor="#000"
+        android:text="SAVE"
+        android:textAlignment="center"
+        />
+
+</LinearLayout>

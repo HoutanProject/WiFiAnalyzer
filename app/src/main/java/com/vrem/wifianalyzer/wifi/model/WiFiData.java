@@ -1,26 +1,14 @@
-/*
- * WiFiAnalyzer
- * Copyright (C) 2018  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.vrem.wifianalyzer.wifi.model;
 
+import android.content.Context;
+import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.vrem.util.FileUtils;
 import com.vrem.wifianalyzer.MainContext;
+import com.vrem.wifianalyzer.R;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,18 +16,47 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.Transformer;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class WiFiData {
-    public static final WiFiData EMPTY = new WiFiData(Collections.emptyList(), WiFiConnection.EMPTY, Collections.emptyList());
 
-    private final List<WiFiDetail> wiFiDetails;
-    private final WiFiConnection wiFiConnection;
+import static android.content.ContentValues.TAG;
+
+public class WiFiData {
+
+    public static final WiFiData EMPTY = new WiFiData(Collections.emptyList(), WiFiConnection.EMPTY, Collections.emptyList());
+    public static String location = "";
+    public static List<WiFiDetail> wiFiDetails;
     private final List<String> wiFiConfigurations;
+    private Context mContext = MainContext.INSTANCE.getContext();
+    private final WiFiConnection wiFiConnection;
+    private static JSONObject wiFiLocations = new JSONObject();
+
+
+    static
+
+    {
+        try {
+
+            String content = FileUtils.readFile(MainContext.INSTANCE.getResources(), R.raw.shanghai);
+            wiFiLocations = new JSONObject(content);
+            Toast.makeText(MainContext.INSTANCE.getContext(), "Loaded locations with " + wiFiLocations.length() + " MAC -> location mappings", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(MainContext.INSTANCE.getContext(), "Failed to load locations", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static String lastNotified = "";
 
     public WiFiData(@NonNull List<WiFiDetail> wiFiDetails, @NonNull WiFiConnection wiFiConnection, @NonNull List<String> wiFiConfigurations) {
         this.wiFiDetails = wiFiDetails;
@@ -65,6 +82,7 @@ public class WiFiData {
             results = sortAndGroup(results, sortBy, groupBy);
         }
         Collections.sort(results, sortBy.comparator());
+        notifyLocation(results);
         return results;
     }
 
@@ -89,6 +107,47 @@ public class WiFiData {
         }
         Collections.sort(results, sortBy.comparator());
         return results;
+    }
+
+
+    private void notifyLocation(List<WiFiDetail> wifiDetails) {
+
+
+        if (wifiDetails.size() < 3) {
+            return;
+        }
+        try {
+            String lookupKey = (wifiDetails.get(0).getBSSID().toUpperCase()/*+" " + wifiDetails.get(0).getWiFiSignal().getStrength()+"\n"+wifiDetails.get(1).getBSSID().toUpperCase()+" " + wifiDetails.get(1).getWiFiSignal().getStrength()+"\n"+wifiDetails.get(2).getBSSID().toUpperCase()+" " + wifiDetails.get(2).getWiFiSignal().getStrength()*/);
+            Log.d(TAG, "Wifidata: " + lookupKey);
+            location = wiFiLocations.getString(lookupKey);
+            if (location == null) {
+                location = wiFiLocations.getString((wifiDetails.get(1).getBSSID() + " " + wifiDetails.get(0).getBSSID() + " " + wifiDetails.get(2).getBSSID()).toUpperCase());
+            }
+            if (location == null) {
+                location = wiFiLocations.getString((wifiDetails.get(0).getBSSID() + " " + wifiDetails.get(1).getBSSID()).toUpperCase());
+            }
+            if (location == null) {
+                location = wiFiLocations.getString((wifiDetails.get(1).getBSSID() + " " + wifiDetails.get(0).getBSSID()).toUpperCase());
+            }
+            if (location == null) {
+                location = wiFiLocations.getString(wifiDetails.get(0).getBSSID().toUpperCase());
+            }
+            if (location == null) {
+                location = wiFiLocations.getString(wifiDetails.get(1).getBSSID().toUpperCase());
+            }
+            if (location != null) {
+                if (!lastNotified.equals(location)) {
+                    Log.d(TAG, "notifyLocation: "+location);
+                    Log.d(TAG, "notifyLocation: "+lastNotified);
+                    Toast.makeText(MainContext.INSTANCE.getContext(), "You are in " + location, Toast.LENGTH_LONG).show();
+                    lastNotified = location;
+
+                }
+            } else {
+                //Toast.makeText(MainContext.INSTANCE.getContext(), "Nothing found " + lookupKey, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+        }
     }
 
     @NonNull
@@ -125,9 +184,9 @@ public class WiFiData {
         @Override
         public boolean evaluate(WiFiDetail wiFiDetail) {
             return new EqualsBuilder()
-                .append(wiFiConnection.getSSID(), wiFiDetail.getSSID())
-                .append(wiFiConnection.getBSSID(), wiFiDetail.getBSSID())
-                .isEquals();
+                    .append(wiFiConnection.getSSID(), wiFiDetail.getSSID())
+                    .append(wiFiConnection.getBSSID(), wiFiDetail.getBSSID())
+                    .isEquals();
         }
     }
 

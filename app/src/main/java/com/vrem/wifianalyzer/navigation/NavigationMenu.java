@@ -35,12 +35,8 @@ import java.util.List;
 
 public enum NavigationMenu {
     ACCESS_POINTS(R.drawable.ic_network_wifi_grey_500_48dp, R.string.action_access_points, NavigationItemFactory.ACCESS_POINTS, NavigationOptionFactory.AP),
-    CHANNEL_RATING(R.drawable.ic_wifi_tethering_grey_500_48dp, R.string.action_channel_rating, NavigationItemFactory.CHANNEL_RATING, NavigationOptionFactory.RATING),
-    CHANNEL_GRAPH(R.drawable.ic_insert_chart_grey_500_48dp, R.string.action_channel_graph, NavigationItemFactory.CHANNEL_GRAPH, NavigationOptionFactory.OTHER),
-    TIME_GRAPH(R.drawable.ic_show_chart_grey_500_48dp, R.string.action_time_graph, NavigationItemFactory.TIME_GRAPH, NavigationOptionFactory.OTHER),
-    EXPORT(R.drawable.ic_import_export_grey_500_48dp, R.string.action_export, NavigationItemFactory.EXPORT),
-    CHANNEL_AVAILABLE(R.drawable.ic_location_on_grey_500_48dp, R.string.action_channel_available, NavigationItemFactory.CHANNEL_AVAILABLE),
-    VENDORS(R.drawable.ic_list_grey_500_48dp, R.string.action_vendors, NavigationItemFactory.VENDORS),
+    SET_DESTINATION(R.drawable.ic_wifi_tethering_grey_500_48dp, R.string.set_destination, NavigationItemFactory.SET_DESTINATION, NavigationOptionFactory.OTHER),
+    COLLECT_DATA(R.drawable.ic_show_chart_grey_500_48dp, R.string.collect_data, NavigationItemFactory.COLLECT_DATA, NavigationOptionFactory.OTHER),
     SETTINGS(R.drawable.ic_settings_grey_500_48dp, R.string.action_settings, NavigationItemFactory.SETTINGS),
     ABOUT(R.drawable.ic_info_outline_grey_500_48dp, R.string.action_about, NavigationItemFactory.ABOUT);
 
