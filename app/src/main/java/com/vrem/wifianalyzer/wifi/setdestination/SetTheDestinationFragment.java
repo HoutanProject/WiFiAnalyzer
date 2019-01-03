@@ -85,7 +85,6 @@ public class SetTheDestinationFragment extends Fragment implements UpdateNotifie
     }
 
 
-
     private void vibrate() {
         Vibrator v = (Vibrator) MainContext.INSTANCE.getContext().getSystemService(Context.VIBRATOR_SERVICE);
         long[] pattern = {0, 1000, 200};
@@ -112,10 +111,7 @@ public class SetTheDestinationFragment extends Fragment implements UpdateNotifie
         notificationManager.notify(0, builder.build());
 
     }
-
-    public void onNothingSelected(AdapterView<?> parent) {
-        // Another interface callback
-    }
+    
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -197,34 +193,8 @@ public class SetTheDestinationFragment extends Fragment implements UpdateNotifie
             }
         });
 
-        swipeRefreshLayout = view.findViewById(R.id.collectDataRefresh);
-        swipeRefreshLayout.setOnRefreshListener(new SetTheDestinationFragment.ListViewOnRefreshListener());
         return view;
     }
 
-    private void refresh() {
-        swipeRefreshLayout.setRefreshing(true);
-        MainContext.INSTANCE.getScannerService().update();
-        swipeRefreshLayout.setRefreshing(false);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        refresh();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-
-    private class ListViewOnRefreshListener implements SwipeRefreshLayout.OnRefreshListener {
-        @Override
-        public void onRefresh() {
-            refresh();
-        }
-    }
 
 }
